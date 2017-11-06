@@ -30,14 +30,14 @@ Learn more about [Installing Rails](http://railsapps.github.io/installing-rails.
 
 Getting Started
 ---------------
-> bundle install
-
-> rails s
-
+``` shell
+bundle install
+rails s
+```
 On other console window, run this command
-
-> bundle exec sidekiq -q resource_worker
-
+``` shell
+bundle exec sidekiq -q resource_worker
+```
 
 Documentation and Support
 -------------------------
@@ -133,9 +133,9 @@ require 'sidekiq/web'
 require 'sidekiq-scheduler/web'
 
 Rails.application.routes.draw do
-	...
+  ...
 
-	mount Sidekiq::Web, at: '/sidekiq'
+  mount Sidekiq::Web, at: '/sidekiq'
 end
 ```
 
