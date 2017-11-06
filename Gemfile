@@ -31,12 +31,8 @@ gem 'high_voltage'
 gem 'jquery-rails'
 gem 'pg'
 gem 'simple_form'
-# gem "sidekiq-cron"
-gem 'sidekiq'
-gem 'sidekiq-cron'
-gem 'sidekiq-failures'
-gem 'sinatra', require: false
-gem 'slim'
+
+gem 'sidekiq-scheduler'
 
 group :development do
   gem 'foreman'

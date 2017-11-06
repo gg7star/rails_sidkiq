@@ -1,21 +1,20 @@
-require 'sidekiq'
+require 'sidekiq-scheduler'
 
 class ResourceWorker
 	include Sidekiq::Worker
   #sidekiq_options queue: "high"
 
-	def perform(complexity)
-		puts "=========== ResourceWorker #{complexity}============="
-		case complexity
-		when "super_hard"
-			sleep 20
-			puts "Really took quite a bit of effort"
-		when "hard"
-			sleep 10
-			puts "That was a bit of work"
-		else
-			sleep 1
-			puts "That wasn't a lot of effort"
-		end
+	def perform
+		puts "=========== ResourceWorker ============="
+	
+		puts "That wasn't a lot of effort"
+	
+   #  users = User.all
+   #  users.each do |user|
+   #  	user.wood += 3
+   #  	user.save
+   #  	puts "=================== #{user.wood} ==================="
+  	# end
+
 	end
 end

@@ -1,9 +1,0 @@
-resource_counter_job:
-  cron: "*/1 * * * *"
-  class: "ResourceCounterJob"
-  queue: resource_counter
-
-resource_worker:
-  cron: "1 * * * *"
-  class: "ResourceWorker"
-  queue: resource_worker
