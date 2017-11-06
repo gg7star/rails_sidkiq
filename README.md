@@ -43,100 +43,103 @@ Documentation and Support
 -------------------------
 
 ## Gemfile
-
-> gem 'sidekiq-scheduler'
-
+``` shell
+gem 'sidekiq-scheduler'
+```
 
 ## config/initializers/sidekiq_scheduler.rb
+``` ruby
+require 'sidekiq/scheduler'
 
-> require 'sidekiq/scheduler'
+Sidekiq.configure_server do |config| 
+	config.redis = { url: 'redis://localhost:6390/0' } 
+end
 
-> Sidekiq.configure_server do |config| 
-> 	config.redis = { url: 'redis://localhost:6390/0' } 
-> end
+Sidekiq.configure_client do |config| 
+	config.redis = { url: 'redis://localhost:6390/0' }
+end
 
-> Sidekiq.configure_client do |config| 
-> 	config.redis = { url: 'redis://localhost:6390/0' }
-> end
-
-> Sidekiq.configure_server do |config|
->   config.on(:startup) do
->     Sidekiq.schedule = YAML.load_file(File.expand_path('../../../config/scheduler.yml',__FILE__))
->     Sidekiq::Scheduler.load_schedule! # This will retrigger the loading stage 
->   end
-> end
-
+Sidekiq.configure_server do |config|
+  config.on(:startup) do
+    Sidekiq.schedule = YAML.load_file(File.expand_path('../../../config/scheduler.yml',__FILE__))
+    Sidekiq::Scheduler.load_schedule! # This will retrigger the loading stage 
+  end
+end
+```
 
 ## config/application.rb
-
-> ...
-> config.active_job.queue_adapter = :sidekiq
-
+``` ruby
+...
+config.active_job.queue_adapter = :sidekiq
+```
 
 ## app/workers/resource_worker.rb
+``` ruby
+require 'sidekiq-scheduler'
 
-> require 'sidekiq-scheduler'
+class ResourceWorker
+	include Sidekiq::Worker
+  #sidekiq_options queue: "high"
 
-> class ResourceWorker
-> 	include Sidekiq::Worker
+	def perform
+    users = User.all
+    users.each do |user|
+    	user.wood += 3
+    	user.save
+  	end
 
-> 	def perform
->   	users = User.all
->   	users.each do |user|
->    		user.wood += 3
->    		user.save
->  		end
-
->		end
-> end
-
+	end
+end
+```
 
 ## config/scheduler.yml
-> resource_worker:
->  # cron: "1 * * * *"
->  class: ResourceWorker
->  every: '1m'
->  queue: resource_worker
-
+``` yaml
+resource_worker:
+  # cron: "1 * * * *"
+  class: ResourceWorker
+  every: '1m'
+  queue: resource_worker
+```
 
 ## config/initializers/redis.rb
+``` ruby
+redis = Hash.new{|h, k| h[k] = Hash.new(url: ENV["REDIS_URL"].presence || "redis://localhost:6379")}
 
-> redis = Hash.new{|h, k| h[k] = Hash.new(url: ENV["REDIS_URL"].presence || "redis://localhost:6379")}
+redis["production"] = {url: ENV["REDIS_URL"].presence || "redis://localhost:6390"}
+redis["staging"] = {url: ENV["REDIS_URL"].presence || "redis://localhost:6390"}
+redis["development"] = {url: "redis://localhost:6390"}
+redis["test"] = {url: "redis://localhost:6391"}
 
-> redis["production"] = {url: ENV["REDIS_URL"].presence || "redis://localhost:6390"}
-> redis["staging"] = {url: ENV["REDIS_URL"].presence || "redis://localhost:6390"}
-> redis["development"] = {url: "redis://localhost:6390"}
-> redis["test"] = {url: "redis://localhost:6391"}
+uri = URI.parse(redis.dig(Rails.env, :url))
 
-> uri = URI.parse(redis.dig(Rails.env, :url))
+if Rails.env.development? || Rails.env.test?
+  system("redis-server --port #{uri.port} --daemonize yes")
+  raise "Couldn't start redis" if $?.exitstatus != 0
+end
 
-> if Rails.env.development? || Rails.env.test?
->   system("redis-server --port #{uri.port} --daemonize yes")
->   raise "Couldn't start redis" if $?.exitstatus != 0
-> end
-
-> REDIS = Redis.new(url: uri.to_s, port: uri.port).freeze
-> puts ">> Initialized REDIS with #{REDIS.inspect}"
-
+REDIS = Redis.new(url: uri.to_s, port: uri.port).freeze
+puts ">> Initialized REDIS with #{REDIS.inspect}"
+```
 
 ## config.ru
+``` ruby
+require 'sidekiq/web'
+require 'sidekiq-scheduler/web'
 
-> require 'sidekiq/web'
-> require 'sidekiq-scheduler/web'
-
-> run Sidekiq::Web
+run Sidekiq::Web
+```
 
 ## config/routes.rb
+``` ruby
+require 'sidekiq/web'
+require 'sidekiq-scheduler/web'
 
-> require 'sidekiq/web'
-> require 'sidekiq-scheduler/web'
+Rails.application.routes.draw do
+	...
 
-> Rails.application.routes.draw do
-> 	...
-
-> 	mount Sidekiq::Web, at: '/sidekiq'
-> end
-
+	mount Sidekiq::Web, at: '/sidekiq'
+end
+```
 
 Issues
 -------------
