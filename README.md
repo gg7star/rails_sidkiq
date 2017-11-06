@@ -78,17 +78,15 @@ config.active_job.queue_adapter = :sidekiq
 require 'sidekiq-scheduler'
 
 class ResourceWorker
-	include Sidekiq::Worker
-  #sidekiq_options queue: "high"
-
-	def perform
+  include Sidekiq::Worker
+  
+  def perform
     users = User.all
     users.each do |user|
-    	user.wood += 3
-    	user.save
-  	end
-
-	end
+      user.wood += 3
+      user.save
+    end
+  end
 end
 ```
 
