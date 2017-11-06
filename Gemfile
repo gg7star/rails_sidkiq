@@ -31,6 +31,13 @@ gem 'high_voltage'
 gem 'jquery-rails'
 gem 'pg'
 gem 'simple_form'
+# gem "sidekiq-cron"
+gem 'sidekiq'
+gem 'sidekiq-cron'
+gem 'sidekiq-failures'
+gem 'sinatra', require: false
+gem 'slim'
+
 group :development do
   gem 'foreman'
   gem 'hub', :require=>nil
