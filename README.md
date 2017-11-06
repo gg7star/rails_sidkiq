@@ -42,12 +42,12 @@ bundle exec sidekiq -q resource_worker
 Documentation and Support
 -------------------------
 
-## Gemfile
+### Gemfile
 ``` shell
 gem 'sidekiq-scheduler'
 ```
 
-## config/initializers/sidekiq_scheduler.rb
+### config/initializers/sidekiq_scheduler.rb
 ``` ruby
 require 'sidekiq/scheduler'
 
@@ -67,13 +67,13 @@ Sidekiq.configure_server do |config|
 end
 ```
 
-## config/application.rb
+### config/application.rb
 ``` ruby
 ...
 config.active_job.queue_adapter = :sidekiq
 ```
 
-## app/workers/resource_worker.rb
+### app/workers/resource_worker.rb
 ``` ruby
 require 'sidekiq-scheduler'
 
@@ -90,7 +90,7 @@ class ResourceWorker
 end
 ```
 
-## config/scheduler.yml
+### config/scheduler.yml
 ``` yaml
 resource_worker:
   # cron: "1 * * * *"
@@ -99,7 +99,7 @@ resource_worker:
   queue: resource_worker
 ```
 
-## config/initializers/redis.rb
+### config/initializers/redis.rb
 ``` ruby
 redis = Hash.new{|h, k| h[k] = Hash.new(url: ENV["REDIS_URL"].presence || "redis://localhost:6379")}
 
@@ -119,7 +119,7 @@ REDIS = Redis.new(url: uri.to_s, port: uri.port).freeze
 puts ">> Initialized REDIS with #{REDIS.inspect}"
 ```
 
-## config.ru
+### config.ru
 ``` ruby
 require 'sidekiq/web'
 require 'sidekiq-scheduler/web'
@@ -127,7 +127,7 @@ require 'sidekiq-scheduler/web'
 run Sidekiq::Web
 ```
 
-## config/routes.rb
+### config/routes.rb
 ``` ruby
 require 'sidekiq/web'
 require 'sidekiq-scheduler/web'
