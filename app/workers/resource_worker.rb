@@ -9,12 +9,12 @@ class ResourceWorker
 	
 		puts "That wasn't a lot of effort"
 	
-   #  users = User.all
-   #  users.each do |user|
-   #  	user.wood += 3
-   #  	user.save
-   #  	puts "=================== #{user.wood} ==================="
-  	# end
+    users = User.all
+    users.each do |user|
+    	user.wood += 3
+    	user.save
+    	puts "=================== #{user.wood} ==================="
+  	end
 
 	end
 end
