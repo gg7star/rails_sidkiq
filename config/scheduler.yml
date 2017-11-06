@@ -1,11 +1,3 @@
-# :schedule:
-
-  # resource_counter_job:
-  #   # cron: "0 * * * *"
-  #   class: ResourceCounterJob
-  #   every: '1m'
-  #   queue: resource_counter
-
 resource_worker:
   # cron: "1 * * * *"
   class: ResourceWorker
