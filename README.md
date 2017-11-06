@@ -30,6 +30,14 @@ Learn more about [Installing Rails](http://railsapps.github.io/installing-rails.
 
 Getting Started
 ---------------
+> bundle install
+
+> rails s
+
+On other console window, run this command
+
+> bundle exec sidekiq -q resource_worker
+
 
 Documentation and Support
 -------------------------
