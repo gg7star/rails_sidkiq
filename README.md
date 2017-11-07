@@ -39,30 +39,74 @@ Documentation and Support
 gem 'sidekiq-scheduler'
 ```
 
+### config.ru
+``` ruby
+require 'sidekiq/web'
+require 'sidekiq-scheduler/web'
+
+run Sidekiq::Web
+```
+
+### config/initializers/redis.rb
+``` ruby
+uri = URI.parse(ENV["REDISTOGO_URL"] || "redis://localhost:6379/" )
+$redis = Redis.new(:host => uri.host, :port => uri.port)
+```
+
 ### config/initializers/sidekiq_scheduler.rb
 ``` ruby
 require 'sidekiq/scheduler'
 
-Sidekiq.configure_server do |config| 
-	config.redis = { url: 'redis://localhost:6390/0' } 
+redis_url = ENV['REDISTOGO_URL'] || "redis://localhost:6379/"
+
+Sidekiq.configure_server do |config|
+  config.redis = {
+    :url => redis_url,
+    :namespace => 'xx_server'
+  }
 end
 
-Sidekiq.configure_client do |config| 
-	config.redis = { url: 'redis://localhost:6390/0' }
+Sidekiq.configure_client do |config|
+  config.redis = {
+    :url => redis_url,
+    :namespace => 'xx_server'
+  }
 end
 
 Sidekiq.configure_server do |config|
   config.on(:startup) do
     Sidekiq.schedule = YAML.load_file(File.expand_path('../../../config/scheduler.yml',__FILE__))
-    Sidekiq::Scheduler.load_schedule! # This will retrigger the loading stage 
+    Sidekiq::Scheduler.load_schedule! 
   end
 end
+
 ```
 
 ### config/application.rb
 ``` ruby
 ...
 config.active_job.queue_adapter = :sidekiq
+```
+
+### config/scheduler.yml
+``` yaml
+resource_worker:
+  # cron: "1 * * * *"
+  class: ResourceWorker
+  every: '1m'
+  queue: resource_worker
+```
+
+### config/routes.rb
+``` ruby
+require 'sidekiq/web'
+require 'sidekiq-scheduler/web'
+
+Rails.application.routes.draw do
+  ...
+
+  mount Sidekiq::Web, at: '/sidekiq'
+end
 ```
 
 ### app/workers/resource_worker.rb
@@ -82,57 +126,22 @@ class ResourceWorker
 end
 ```
 
-### config/scheduler.yml
-``` yaml
-resource_worker:
-  # cron: "1 * * * *"
-  class: ResourceWorker
-  every: '1m'
-  queue: resource_worker
-```
-
-### config/initializers/redis.rb
-``` ruby
-redis = Hash.new{|h, k| h[k] = Hash.new(url: ENV["REDIS_URL"].presence || "redis://localhost:6379")}
-
-redis["production"] = {url: ENV["REDIS_URL"].presence || "redis://localhost:6390"}
-redis["staging"] = {url: ENV["REDIS_URL"].presence || "redis://localhost:6390"}
-redis["development"] = {url: "redis://localhost:6390"}
-redis["test"] = {url: "redis://localhost:6391"}
-
-uri = URI.parse(redis.dig(Rails.env, :url))
-
-if Rails.env.development? || Rails.env.test?
-  system("redis-server --port #{uri.port} --daemonize yes")
-  raise "Couldn't start redis" if $?.exitstatus != 0
-end
-
-REDIS = Redis.new(url: uri.to_s, port: uri.port).freeze
-puts ">> Initialized REDIS with #{REDIS.inspect}"
-```
-
-### config.ru
-``` ruby
-require 'sidekiq/web'
-require 'sidekiq-scheduler/web'
-
-run Sidekiq::Web
-```
-
-### config/routes.rb
-``` ruby
-require 'sidekiq/web'
-require 'sidekiq-scheduler/web'
-
-Rails.application.routes.draw do
-  ...
-
-  mount Sidekiq::Web, at: '/sidekiq'
-end
+### Procfile
+``` shell
+web: bundle exec unicorn -p $PORT
+worker: bundle exec sidekiq -c 5 -v -q resource_worker
 ```
 
 Issues
 -------------
+You should add RedisToGo addon on heroku
+https://stackoverflow.com/questions/13770713/rails-starting-sidekiq-on-heroku
+
+You need to write Procfile to auto-run this sidekiq scheduler as background process on Heroku
+Note that should add "-c -5 -v" options
+``` shell
+bundle exec sidekiq -c 5 -v -q resource_worker
+```
 
 Run
 ----------------
@@ -144,6 +153,10 @@ On other console window, run this command
 ``` shell
 bundle exec sidekiq -q resource_worker
 ```
+or 
+``` shell
+bundle exec sidekiq -c 5 -v -q resource_worker
+```
 
 Web page
 ------------
@@ -151,8 +164,3 @@ Web page
 
 > http://localhost:3000/sidekiq
 
-Credits
--------
-
-License
--------

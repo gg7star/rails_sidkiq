@@ -32,6 +32,7 @@ gem 'jquery-rails'
 gem 'pg'
 gem 'simple_form'
 
+gem 'redis', '~>3.3'
 gem 'sidekiq-scheduler'
 
 group :development do

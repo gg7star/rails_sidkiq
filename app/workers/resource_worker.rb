@@ -7,8 +7,6 @@ class ResourceWorker
 	def perform
 		puts "=========== ResourceWorker ============="
 	
-		puts "That wasn't a lot of effort"
-	
     users = User.all
     users.each do |user|
     	user.wood += 3

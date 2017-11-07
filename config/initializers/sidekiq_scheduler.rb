@@ -1,18 +1,24 @@
 require 'sidekiq/scheduler'
 
-Sidekiq.configure_server do |config| 
-	config.redis = { url: 'redis://localhost:6390/0' } 
+redis_url = ENV['REDISTOGO_URL'] || "redis://localhost:6379/"
+
+Sidekiq.configure_server do |config|
+  config.redis = {
+    :url => redis_url,
+    :namespace => 'xx_server'
+  }
 end
 
-Sidekiq.configure_client do |config| 
-	config.redis = { url: 'redis://localhost:6390/0' }
+Sidekiq.configure_client do |config|
+  config.redis = {
+    :url => redis_url,
+    :namespace => 'xx_server'
+  }
 end
-
-# Sidekiq.schedule = YAML.load_file(File.expand_path('../../scheduler.yml', __FILE__))
 
 Sidekiq.configure_server do |config|
   config.on(:startup) do
     Sidekiq.schedule = YAML.load_file(File.expand_path('../../../config/scheduler.yml',__FILE__))
-    Sidekiq::Scheduler.load_schedule! # This will retrigger the loading stage 
+    Sidekiq::Scheduler.load_schedule! 
   end
 end
